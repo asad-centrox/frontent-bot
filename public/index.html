@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pocket-Mate AI Chatbot</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        h1 {
+            color: #4CAF50;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: bold;
+            color: #333333;
+            display: block;
+            margin-top: 20px;
+        }
+
+        input[type="text"] {
+            width: 95%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #cccccc;
+            border-radius: 4px;
+            font-size: 16px;
+            display: inline-block;
+        }
+
+        .mic-button {
+            background-color: transparent;
+            color: black;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            padding: 10px;
+            margin-left: -10px;
+        }
+
+        .fa-microphone-alt.fa-microphone-alt {
+            color: red;
+            /* Change the color or add any other styling as needed */
+        }
+
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .response {
+            margin-top: 40px;
+            border: 1px solid #cccccc;
+            border-radius: 10px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            color: #333333;
+            font-size: 18px;
+            text-align: left;
+        }
+
+        .audio-controls {
+            margin-top: 20px;
+        }
+
+        #recorder,
+        #player {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Pocket-Mate AI Chatbot</h1>
+        <form>
+            <!-- <div class="form-group">
+<label for="prompt">Enter your Prompt:</label>
+<span class="mic-button" onclick="toggleRecording()"><i class="fas fa-microphone"></i></span>
+<input type="text" class="form-control" id="prompt" placeholder="Type your prompt here...">
+</div> -->
+
+            <div class="form-group">
+                <label for="prompt">Enter your Prompt:</label>
+                <span class="mic-button" onclick="toggleRecording()"><i onclick="startRecording()" id="mic-icon"
+                        class="fas fa-microphone"></i></span>
+                <input type="text" class="form-control" id="prompt" placeholder="Type your prompt here..." value="">
+            </div>
+
+            <button class="btn btn-success" id="submitBtn" onclick="sendPrompt()">Send</button>
+            <button class="btn btn-danger" id="stopBtn" onclick="stopLoading()">Stop</button>
+
+        </form>
+        <div class="response mt-4" id="response"></div>
+
+        <div>
+            <!-- <h1>VOICE RECORDING DEMO FTW, BRO</h1>
+            <span>Recorder</span> -->
+
+            <audio id="recorder" muted hidden type="audio/mp3"></audio>
+            <!-- <div>
+                <button id="start">Record</button>
+                <button id="stop">Stop Recording</button>
+            </div> -->
+            <!-- <span>Saved Recording</span> -->
+            <audio id="player" controls type="audio/mp3"></audio>
+        </div>
+
+    </div>
+
+    <!-- <button class="btn btn-primary" id="startBtn" onclick="toggleRecording()">Toggle Recording</button> -->
+
+    <script>
+
+        class VoiceRecorder {
+            constructor() {
+                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    console.log("getUserMedia supported")
+                } else {
+                    console.log("getUserMedia is not supported on your browser!")
+                }
+
+                this.mediaRecorder
+                this.stream
+                this.chunks = []
+                this.isRecording = false
+
+                
+                this.recorderRef = document.querySelector("#recorder")
+                this.playerRef = document.querySelector("#player")
+                this.startRef = document.querySelector("#mic-icon")
+                this.stopRef = document.querySelector("#mic-icon")
+
+                this.startRef.onclick = this.startRecording.bind(this)
+                this.stopRef.onclick = this.stopRecording.bind(this)
+
+                this.constraints = {
+                    audio: true,
+                    video: false
+                }
+
+            }
+
+
+            toggleRecording() {
+
+                // if (!this.isRecording) this.startRecording()
+                // else if (this.isRecording) this.stopRecording()
+
+
+                if (window.voiceRecorder.isRecording) {
+                    window.voiceRecorder.stopRecording();
+                } else {
+                    window.voiceRecorder.startRecording();
+                }
+            }
+
+            // if (!this.isRecording) {
+            //     this.startRecording();
+            //     //document.getElementById('mic-icon').classList.add('fa-microphone-alt');
+            //     document.getElementById('mic-icon').classList.toggle('fa-microphone-alt');
+
+
+            // } else {
+            //     this.stopRecording();
+            //     document.getElementById('mic-icon').classList.remove('fa-microphone-alt');
+            // }
+
+
+
+
+            // toggleRecording() {
+            //     if (!this.isRecording) {
+            //         this.startRecording();
+            //         document.getElementById('mic-icon').classList.add('recording'); // Add the recording class
+            //     } else {
+            //         this.stopRecording();
+            //         document.getElementById('mic-icon').classList.remove('recording'); // Remove the recording class
+            //     }
+            // }
+
+            // toggleRecording() {
+            //     if (!window.voiceRecorder.isRecording) {
+            //         window.voiceRecorder.startRecording();
+            //         document.getElementById('mic-icon').classList.add('recording'); // Add the recording class
+            //     } else {
+            //         window.voiceRecorder.stopRecording();
+            //         document.getElementById('mic-icon').classList.remove('recording'); // Remove the recording class
+            //     }
+            // }
+
+
+            handleSuccess(stream) {
+                this.stream = stream
+                this.stream.oninactive = () => {
+                    console.log("Stream ended!")
+                };
+                this.recorderRef.srcObject = this.stream
+                this.mediaRecorder = new MediaRecorder(this.stream)
+                console.log(this.mediaRecorder)
+                this.mediaRecorder.ondataavailable = this.onMediaRecorderDataAvailable.bind(this)
+                this.mediaRecorder.onstop = this.onMediaRecorderStop.bind(this)
+                this.recorderRef.play()
+                this.mediaRecorder.start()
+            }
+
+            handleError(error) {
+                console.log("navigator.getUserMedia error: ", error)
+            }
+
+            onMediaRecorderDataAvailable(e) { this.chunks.push(e.data) }
+
+            onMediaRecorderStop(e) {
+                const blob = new Blob(this.chunks, { 'type': 'audio/mp3; codecs=opus' })
+                const audioURL = window.URL.createObjectURL(blob)
+
+                console.log("BLOB IS BLOB", blob)
+
+                const formData = new FormData();
+                formData.append('audio', blob, 'recorded_audio.mp3');
+
+                console.log("FORM DATA:", formData)
+
+
+
+                fetch('https://38ac-2407-d000-a-96d3-f654-250e-60cf-b1c5.ngrok-free.app/transcribe', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Transcribed audio is being set in the input element id ='prompt', HERE
+                        document.getElementById('prompt').value = data.transcription
+                        console.log('Server Response:', data)
+                    })
+                    .catch(error => console.error('Error sending recording to server:', error));
+
+                this.playerRef.src = audioURL
+                this.chunks = []
+                this.stream.getAudioTracks().forEach(track => track.stop())
+                this.stream = null
+
+            }
+
+            startRecording() {
+                if (this.isRecording) return
+                this.isRecording = true
+                //this.startRef.innerHTML = 'Recording...'
+                // document.getElementById('mic-icon').classList.toggle('fa-microphone-alt');
+                document.getElementById('mic-icon').style.color = 'red'
+
+                this.playerRef.src = ''
+                navigator.mediaDevices
+                    .getUserMedia(this.constraints)
+                    .then(this.handleSuccess.bind(this))
+                    .catch(this.handleError.bind(this))
+            }
+
+            stopRecording() {
+                if (!this.isRecording) return
+                this.isRecording = false
+                //this.startRef.innerHTML = 'Record'
+                document.getElementById('mic-icon').style.color = 'black'
+
+                this.recorderRef.pause()
+                this.mediaRecorder.stop()
+            }
+
+        }
+
+
+
+        window.voiceRecorder = new VoiceRecorder()
+        function toggleRecording() {
+            window.voiceRecorder.toggleRecording();
+        }
+
+
+        // LLM 
+        var stopBtn = document.getElementById("stopBtn");
+        var isLoading = false;
+        var controller;
+
+        function stopLoading() {
+            if (isLoading) {
+                // Abort the fetch request
+                controller.abort();
+
+                // Reset the UI
+                var submitBtn = document.getElementById("submitBtn");
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Send';
+                stopBtn.disabled = true;
+                isLoading = false;
+            }
+        }
+
+        function sendPrompt() {
+            var prompt = document.getElementById("prompt").value;
+            var responseDiv = document.getElementById("response");
+            responseDiv.innerHTML = "";
+
+            var submitBtn = document.getElementById("submitBtn");
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...';
+
+            stopBtn.disabled = false; // Enable the "Stop" button
+            isLoading = true;
+            controller = new AbortController();
+
+            var myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/json");
+
+            var requestOptions = {
+                method: "POST",
+                headers: myHeaders,
+                body: JSON.stringify({ prompt: prompt }),
+                redirect: 'follow',
+                signal: controller.signal // Pass the signal to the fetch request
+            };
+
+            fetch("http://192.168.18.42:5000/api/chat", requestOptions)
+                .then(response => response.json())
+                .then(data => {
+                    var responseText = document.createElement("p");
+                    responseText.textContent = "AI Assistant: " + data.response;
+                    responseDiv.appendChild(responseText);
+
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Send';
+                    stopBtn.disabled = true; // Disable the "Stop" button
+                    isLoading = false;
+                })
+                .catch(error => {
+                    if (error.name !== 'AbortError') {
+                        console.error('Error:', error);
+                    }
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Send';
+                    stopBtn.disabled = true; // Disable the "Stop" button
+                    isLoading = false;
+                });
+        }
+
+        
+
+
+    </script>
+
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.js"></script>
+</body>
+
+</html>
